@@ -1,0 +1,61 @@
+services:
+  scheduler:
+    container_name: purwadika-airflow-scheduler
+    build:
+      context: .
+      dockerfile: Dockerfile
+    restart: always
+    entrypoint: ./scripts/airflow-entrypoint.sh
+    command: scheduler
+    env_file:
+      - .env
+    environment:
+      - GOOGLE_APPLICATION_CREDENTIALS=/opt/airflow/keys/gcp_keys.json
+    ports:
+      - "8793:8793"
+    volumes:
+      - ./keys:/opt/airflow/keys
+      - ./dags:/opt/airflow/dags
+      - ./logs:/opt/airflow/logs
+      - ./plugins:/opt/airflow/plugins
+      - ./credentials.json:/opt/airflow/credentials.json
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "[ -f /usr/local/airflow/airflow-webserver.pid ]"
+        ]
+      interval: 30s
+      timeout: 30s
+      retries: 3
+
+  webserver:
+    container_name: purwadika-airflow-webserver
+    build:
+      context: .
+      dockerfile: Dockerfile
+    hostname: webserver
+    restart: always
+    entrypoint: ./scripts/airflow-entrypoint.sh
+    command: webserver
+    env_file:
+      - .env
+    environment:
+      - GOOGLE_APPLICATION_CREDENTIALS=/opt/airflow/keys/gcp_keys.json
+    volumes:
+      - ./keys:/opt/airflow/keys
+      - ./dags:/opt/airflow/dags
+      - ./logs:/opt/airflow/logs
+      - ./plugins:/opt/airflow/plugins
+      - ./credentials.json:/opt/airflow/credentials.json
+    ports:
+      - "8080:8080"
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "[ -f /usr/local/airflow/airflow-webserver.pid ]"
+        ]
+      interval: 30s
+      timeout: 30s
+      retries: 3
