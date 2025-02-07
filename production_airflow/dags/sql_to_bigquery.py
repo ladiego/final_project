@@ -120,25 +120,54 @@ def load_data_to_final(table_name):
         # Create the final table if it does not exist
         create_final_table_if_not_exists(client, BIGQUERY_PROJECT, BIGQUERY_DATASET, table_name, table_schema[table_name])
 
-        # Insert unique data from staging to final table
+        # Define the final and staging table IDs
         final_table_id = f"{BIGQUERY_PROJECT}.{BIGQUERY_DATASET}.{table_name}"
-        staging_table_name = f"{table_name}_staging"
+        staging_table_id = f"{BIGQUERY_PROJECT}.{BIGQUERY_DATASET}.{table_name}_staging"
+
+        # Define the merge query based on the table name
+        if table_name == "users":
+            merge_query = f"""
+                MERGE `{final_table_id}` AS final
+                USING (
+                    SELECT DISTINCT * FROM `{staging_table_id}`
+                    WHERE created_at IS NOT NULL
+                ) AS staging
+                ON final.user_id = staging.user_id
+                WHEN NOT MATCHED THEN
+                    INSERT (user_id, name, email, address, gender, created_at)
+                    VALUES (staging.user_id, staging.name, staging.email, staging.address, staging.gender, staging.created_at)
+            """
         
-        # Use INSERT ... SELECT DISTINCT to avoid duplicates
-        insert_query = f"""
-            INSERT INTO `{final_table_id}`
-            SELECT DISTINCT * FROM `{BIGQUERY_PROJECT}.{BIGQUERY_DATASET}.{staging_table_name}`
-            WHERE created_at IS NOT NULL  -- Ensure created_at is not null
-            AND NOT EXISTS (
-                SELECT 1 FROM `{final_table_id}` AS final
-                WHERE final.user_id = `{staging_table_name}`.user_id  -- Adjust this condition based on your primary key
-                AND final.created_at = `{staging_table_name}`.created_at  -- Adjust this condition based on your unique constraints
-            )
-        """
+        elif table_name == "books":
+            merge_query = f"""
+                MERGE `{final_table_id}` AS final
+                USING (
+                    SELECT DISTINCT * FROM `{staging_table_id}`
+                    WHERE created_at IS NOT NULL
+                ) AS staging
+                ON final.book_id = staging.book_id
+                WHEN NOT MATCHED THEN
+                    INSERT (book_id, title, author, publisher, release_year, stock, created_at)
+                    VALUES (staging.book_id, staging.title, staging.author, staging.publisher, staging.release_year, staging.stock, staging.created_at)
+            """
         
-        query_job = client.query(insert_query)
+        elif table_name == "rents":
+            merge_query = f"""
+                MERGE `{final_table_id}` AS final
+                USING (
+                    SELECT DISTINCT * FROM `{staging_table_id}`
+                    WHERE created_at IS NOT NULL
+                ) AS staging
+                ON final.rent_id = staging.rent_id
+                WHEN NOT MATCHED THEN
+                    INSERT (rent_id, user_id, book_id, rent_date, return_date, created_at)
+                    VALUES (staging.rent_id, staging.user_id, staging.book_id, staging.rent_date, staging.return_date, staging.created_at)
+            """
+        
+        # Execute the merge query
+        query_job = client.query(merge_query)
         query_job.result()  # Wait for the job to complete
-        logging.info(f"Unique data inserted from staging table to final table {final_table_id}")
+        logging.info(f"Unique data merged from staging table to final table {final_table_id}")
 
     except Exception as e:
         logging.error(f"Failed to load data into final table: {e}")
