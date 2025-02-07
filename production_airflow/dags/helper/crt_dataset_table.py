@@ -38,18 +38,6 @@ def create_staging_table(client, project_id, dataset_id, table_name, schema):
     create_table_if_not_exists(client, project_id, dataset_id, staging_table_name, schema)
     return staging_table_name
 
-# def create_final_table_if_not_exists(client, project, dataset, table_name, schema):
-#     """Create the final table in BigQuery if it does not exist."""
-#     table_id = f"{project}.{dataset}.{table_name}"
-#     try:
-#         client.get_table(table_id)  # Check if the table exists
-#         logging.info(f"Table {table_id} already exists.")
-#     except NotFound:
-#         # Create the table if it does not exist
-#         table = bigquery.Table(table_id, schema=schema)
-#         client.create_table(table)
-#         logging.info(f"Created table {table_id}.")
-
 def create_final_table_if_not_exists(client, project, dataset, table_name, schema):
     """Create the final table in BigQuery if it does not exist."""
     table_id = f"{project}.{dataset}.{table_name}"
