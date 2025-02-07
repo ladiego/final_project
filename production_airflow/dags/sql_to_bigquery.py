@@ -21,32 +21,42 @@ BIGQUERY_DATASET = "diego_library_final_project"
 LOCAL_TZ = pytz.timezone("Asia/Jakarta")
 TABLES = ["users", "books", "rents"]
 
+# Updated table schema
 table_schema = {
-    "users": [
-        bigquery.SchemaField("user_id", "INT64"),
-        bigquery.SchemaField("name", "STRING"),
-        bigquery.SchemaField("email", "STRING"),
-        bigquery.SchemaField("address", "STRING"),
-        bigquery.SchemaField("gender", "STRING"),
-        bigquery.SchemaField("created_at", "TIMESTAMP"),
-    ],
-    "books": [
-        bigquery.SchemaField("book_id", "INT64"),
-        bigquery.SchemaField("title", "STRING"),
-        bigquery.SchemaField("author", "STRING"),
-        bigquery.SchemaField("publisher", "STRING"),
-        bigquery.SchemaField("release_year", "INT64"),
-        bigquery.SchemaField("stock", "INT64"),
-        bigquery.SchemaField("created_at", "TIMESTAMP"),
-    ],
-    "rents": [
-        bigquery.SchemaField("rent_id", "INT64"),
-        bigquery.SchemaField("user_id", "INT64"),
-        bigquery.SchemaField("book_id", "INT64"),
-        bigquery.SchemaField("rent_date", "TIMESTAMP"),
-        bigquery.SchemaField("return_date", "TIMESTAMP"),
-        bigquery.SchemaField("created_at", "TIMESTAMP"),
-    ],
+    "users": {
+        "schema": [
+            bigquery.SchemaField("user_id", "INT64"),
+            bigquery.SchemaField("name", "STRING"),
+            bigquery.SchemaField("email", "STRING"),
+            bigquery.SchemaField("address", "STRING"),
+            bigquery.SchemaField("gender", "STRING"),
+            bigquery.SchemaField("created_at", "TIMESTAMP"),
+        ],
+        "columns": ["user_id", "name", "email", "address", "gender", "created_at"]
+    },
+    "books": {
+        "schema": [
+            bigquery.SchemaField("book_id", "INT64"),
+            bigquery.SchemaField("title", "STRING"),
+            bigquery.SchemaField("author", "STRING"),
+            bigquery.SchemaField("publisher", "STRING"),
+            bigquery.SchemaField("release_year", "INT64"),
+            bigquery.SchemaField("stock", "INT64"),
+            bigquery.SchemaField("created_at", "TIMESTAMP"),
+        ],
+        "columns": ["book_id", "title", "author", "publisher", "release_year", "stock", "created_at"]
+    },
+    "rents": {
+        "schema": [
+            bigquery.SchemaField("rent_id", "INT64"),
+            bigquery.SchemaField("user_id", "INT64"),
+            bigquery.SchemaField("book_id", "INT64"),
+            bigquery.SchemaField("rent_date", "TIMESTAMP"),
+            bigquery.SchemaField("return_date", "TIMESTAMP"),
+            bigquery.SchemaField("created_at", "TIMESTAMP"),
+        ],
+        "columns": ["rent_id", "user_id", "book_id", "rent_date", "return_date", "created_at"]
+    },
 }
 
 def save_to_csv(**kwargs):
@@ -86,11 +96,11 @@ def load_data_to_staging(file_path, table_name):
         create_dataset_if_not_exists(client, BIGQUERY_PROJECT, BIGQUERY_DATASET)
 
         # Load data into the staging table (replace existing data)
-        staging_table_name = create_staging_table(client, BIGQUERY_PROJECT, BIGQUERY_DATASET, table_name, table_schema[table_name])
+        staging_table_name = create_staging_table(client, BIGQUERY_PROJECT, BIGQUERY_DATASET, table_name, table_schema[table_name]["schema"])
         table_id = f"{BIGQUERY_PROJECT}.{BIGQUERY_DATASET}.{staging_table_name}"
         job_config = bigquery.LoadJobConfig(
             write_disposition="WRITE_TRUNCATE",  # Replace existing data
-            schema=table_schema[table_name],  # Use the same schema for staging
+            schema=table_schema[table_name]["schema"],  # Use the same schema for staging
             max_bad_records=10,
             ignore_unknown_values=True,
         )
@@ -118,51 +128,24 @@ def load_data_to_final(table_name):
         client = bigquery.Client(credentials=credentials, project=credentials.project_id)
 
         # Create the final table if it does not exist
-        create_final_table_if_not_exists(client, BIGQUERY_PROJECT, BIGQUERY_DATASET, table_name, table_schema[table_name])
+        create_final_table_if_not_exists(client, BIGQUERY_PROJECT, BIGQUERY_DATASET, table_name, table_schema[table_name]["schema"])
 
         # Define the final and staging table IDs
         final_table_id = f"{BIGQUERY_PROJECT}.{BIGQUERY_DATASET}.{table_name}"
         staging_table_id = f"{BIGQUERY_PROJECT}.{BIGQUERY_DATASET}.{table_name}_staging"
 
         # Define the merge query based on the table name
-        if table_name == "users":
-            merge_query = f"""
-                MERGE `{final_table_id}` AS final
-                USING (
-                    SELECT DISTINCT * FROM `{staging_table_id}`
-                    WHERE created_at IS NOT NULL
-                ) AS staging
-                ON final.user_id = staging.user_id
-                WHEN NOT MATCHED THEN
-                    INSERT (user_id, name, email, address, gender, created_at)
-                    VALUES (staging.user_id, staging.name, staging.email, staging.address, staging.gender, staging.created_at)
-            """
-        
-        elif table_name == "books":
-            merge_query = f"""
-                MERGE `{final_table_id}` AS final
-                USING (
-                    SELECT DISTINCT * FROM `{staging_table_id}`
-                    WHERE created_at IS NOT NULL
-                ) AS staging
-                ON final.book_id = staging.book_id
-                WHEN NOT MATCHED THEN
-                    INSERT (book_id, title, author, publisher, release_year, stock, created_at)
-                    VALUES (staging.book_id, staging.title, staging.author, staging.publisher, staging.release_year, staging.stock, staging.created_at)
-            """
-        
-        elif table_name == "rents":
-            merge_query = f"""
-                MERGE `{final_table_id}` AS final
-                USING (
-                    SELECT DISTINCT * FROM `{staging_table_id}`
-                    WHERE created_at IS NOT NULL
-                ) AS staging
-                ON final.rent_id = staging.rent_id
-                WHEN NOT MATCHED THEN
-                    INSERT (rent_id, user_id, book_id, rent_date, return_date, created_at)
-                    VALUES (staging.rent_id, staging.user_id, staging.book_id, staging.rent_date, staging.return_date, staging.created_at)
-            """
+        merge_query = f"""
+            MERGE `{final_table_id}` AS final
+            USING (
+                SELECT DISTINCT * FROM `{staging_table_id}`
+                WHERE created_at IS NOT NULL
+            ) AS staging
+            ON final.{table_schema[table_name]['columns'][0]} = staging.{table_schema[table_name]['columns'][0]}
+            WHEN NOT MATCHED THEN
+                INSERT ({', '.join(table_schema[table_name]['columns'])})
+                VALUES ({', '.join([f'staging.{col}' for col in table_schema[table_name]['columns']])})
+        """
         
         # Execute the merge query
         query_job = client.query(merge_query)
@@ -197,7 +180,6 @@ with DAG(
 ) as dag:
 
     start = DummyOperator(task_id="start")
-    process_groups = []  # List to hold all TaskGroups
 
     # Create TaskGroups for each table
     for table in TABLES:
@@ -232,7 +214,7 @@ with DAG(
             )
 
             extract_task >> save_task >> load_staging_task >> load_final_task
-        process_groups.append(process_group)
+
     end = DummyOperator(task_id="end")
 
-    start >> process_group >> end
+    start >> [process_group for table in TABLES] >> end
