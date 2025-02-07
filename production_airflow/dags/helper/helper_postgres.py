@@ -21,11 +21,6 @@ def create_connection():
     """Create connection to database PostgreSQL."""
     try:
         conn = psycopg2.connect(
-            # dbname='final_project',
-            # user='dewa_final',
-            # password='dewa_final',
-            # host='host.docker.internal',
-            # port='5431'
             dbname=dbname,
             user=user,
             password=password,
