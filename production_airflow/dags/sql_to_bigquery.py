@@ -21,7 +21,6 @@ BIGQUERY_DATASET = "diego_library_final_project"
 LOCAL_TZ = pytz.timezone("Asia/Jakarta")
 TABLES = ["users", "books", "rents"]
 
-# Updated table schema
 table_schema = {
     "users": {
         "schema": [
@@ -82,6 +81,7 @@ def load_data_to_staging(file_path, table_name):
     logging.info(f"Loading data from {file_path} into staging table {table_name}_staging")
     
     # Check if the file exists
+    logging.info(f"Checking if file exists: {file_path}")
     if not os.path.exists(file_path):
         logging.error(f"File not found: {file_path}")
         raise FileNotFoundError(f"File not found: {file_path}")
