@@ -13,7 +13,7 @@ POSTGRES_PASSWORD = os.getenv("password")
 POSTGRES_DATABASE = os.getenv("dbname")
 
 def get_yesterday_date():
-    return (datetime.now(pytz.timezone("Asia/Jakarta")) - timedelta(days=2)).strftime('%Y-%m-%d')
+    return (datetime.now(pytz.timezone("Asia/Jakarta")) - timedelta(days=1)).strftime('%Y-%m-%d')
 
 def data_info(dataframe, table_name):
     """Logs DataFrame details for debugging."""
