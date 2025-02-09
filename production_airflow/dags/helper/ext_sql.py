@@ -59,3 +59,21 @@ def extract_table_data(table):
                 time.sleep(5 * (attempt + 1))
             else:
                 raise
+
+def save_to_csv(**kwargs):
+    """Save a DataFrame to CSV and return the file path."""
+    dataframe = kwargs['ti'].xcom_pull(task_ids=kwargs['extract_task_id'])
+    
+    logging.info(f"Extracted DataFrame for {kwargs['table_name']}: {dataframe}")
+
+    if dataframe is None or isinstance(dataframe, str):
+        raise ValueError("Expected a DataFrame, but got a string or None.")
+    
+    file_path = f"/tmp/{kwargs['table_name']}.csv"
+    try:
+        dataframe.to_csv(file_path, index=False)
+        logging.info(f"Saved {kwargs['table_name']} to {file_path}")
+    except Exception as e:
+        logging.error(f"Failed to save {kwargs['table_name']} to CSV: {e}")
+        raise
+    return file_path
