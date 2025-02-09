@@ -8,7 +8,7 @@ from airflow import DAG
 from airflow.operators.dummy import DummyOperator
 from airflow.operators.python import PythonOperator
 from airflow.utils.task_group import TaskGroup
-from helper.ext_sql import extract_table_data
+from helper.ext_sql import extract_table_data, save_to_csv
 from helper.crt_dataset_table import create_dataset_if_not_exists, create_staging_table, create_final_table_if_not_exists
 from helper.notify import notify_on_success, notify_on_error, notify_on_retry
 
@@ -58,30 +58,14 @@ table_schema = {
     },
 }
 
-def save_to_csv(**kwargs):
-    """Save a DataFrame to CSV and return the file path."""
-    dataframe = kwargs['ti'].xcom_pull(task_ids=kwargs['extract_task_id'])
-    
-    logging.info(f"Extracted DataFrame for {kwargs['table_name']}: {dataframe}")
-
-    if dataframe is None or isinstance(dataframe, str):
-        raise ValueError("Expected a DataFrame, but got a string or None.")
-    
-    file_path = f"/tmp/{kwargs['table_name']}.csv"
-    try:
-        dataframe.to_csv(file_path, index=False)
-        logging.info(f"Saved {kwargs['table_name']} to {file_path}")
-    except Exception as e:
-        logging.error(f"Failed to save {kwargs['table_name']} to CSV: {e}")
-        raise
-    return file_path
-
 def load_data_to_staging(file_path, table_name):
     """Loads a CSV file into the staging table."""
     logging.info(f"Loading data from {file_path} into staging table {table_name}_staging")
     
+    # Log the received file path
+    logging.info(f"Received file path: {file_path}")
+
     # Check if the file exists
-    logging.info(f"Checking if file exists: {file_path}")
     if not os.path.exists(file_path):
         logging.error(f"File not found: {file_path}")
         raise FileNotFoundError(f"File not found: {file_path}")
