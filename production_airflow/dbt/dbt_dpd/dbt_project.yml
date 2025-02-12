@@ -12,9 +12,9 @@ clean-targets:
 
 models:
   dbt_dpd:
-    staging:
+    prepartion:
       +materialized: view
-      +schema: diego_dwh_library_staging
+      +schema: diego_dwh_library_preparation
       +persists_docs:
         relation: true
         columns: true
