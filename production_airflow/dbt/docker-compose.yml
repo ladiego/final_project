@@ -7,7 +7,7 @@ services:
     volumes:
       - ./dbt_project:/usr/app/dbt_project
       - ./credentials.json:/root/.dbt/credentials.json
-    working_dir: /usr/app/dbt_project
+    working_dir: /usr/app/dbt_bpd
     environment:
       DBT_PROFILES_DIR: /usr/app/dbt_project
     entrypoint: ["tail", "-f", "/dev/null"]
