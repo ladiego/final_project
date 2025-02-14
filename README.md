@@ -157,9 +157,7 @@ Tahap 6: Dokumentasi dan Organisasi
 * Organisasi Model:  
   * Model data diorganisasi ke dalam beberapa schema (diego\_dwh\_library\_preparation, diego\_dwh\_library\_dimfact, diego\_dwh\_library\_marts) untuk memisahkan tahapan transformasi data.
 
-	
 
-**Gambar.1** workflow data pipeline
 
 **3\. Apa itu Web Scraping?**  
 Web Scraping adalah teknik yang digunakan untuk mengekstrak data dari website secara otomatis. Proses ini melibatkan pengambilan konten dari halaman web, biasanya dalam bentuk HTML, dan kemudian mengurai (parsing) konten tersebut untuk mengambil informasi yang diinginkan. Web scraping sering digunakan untuk mengumpulkan data dari berbagai sumber di internet, seperti harga produk, berita, informasi kontak, atau data statistik.
@@ -188,5 +186,3 @@ c. Etika dan Legalitas Web Scraping
 
 * Etika: Selalu periksa robots.txt di website untuk melihat apakah scraping diizinkan.  
 * Legalitas: Beberapa website melarang scraping dalam syarat dan ketentuan mereka. Selalu pastikan untuk mematuhi aturan yang berlaku.
-
-**Gambar.2** Alur proses Web Scraping pada project
