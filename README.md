@@ -109,7 +109,8 @@ Gunakan kredensial default Airflow (`airflow.cfg`) untuk login.
 
 **6\. Proses ETL dalam Apache Airflow**
 
-	**![][image2]**
+	**![4C60E197-116F-4F60-9D43-D42BA2AE7E92_1_105_c](https://github.com/user-attachments/assets/33c01c74-a9ab-4792-870e-ec95d1edaba4)
+**
 
 6.1. DAG 1: Ingest Data ke PostgreSQL
 
