@@ -242,8 +242,8 @@ Untuk menjalankan DAG ini, pastikan layanan Airflow sudah berjalan, lalu aktifka
 2.1 Pastikan layanan Airflow aktif
 
 	`docker-compose -f postgres_db/docker-compose.yml up -d`  
-`docker-compose -f postgres_airflow/docker-compose.yml up -d`  
-`docker-compose -f production_airflow/docker-compose.yml up -d`
+	`docker-compose -f postgres_airflow/docker-compose.yml up -d`  
+	`docker-compose -f production_airflow/docker-compose.yml up -d`
 
 2.2 Buka UI Apache Airflow
 
