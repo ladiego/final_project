@@ -28,11 +28,11 @@ airflow connections add 'discord_webhook' \
 
 # Create user
 airflow users create -r Admin \
-    -u airflow_metadata \
+    -u airflow \
     -f airflow \
     -l admin \
-    -p password_airflow \
-    -e samsudiney@gmail.com
+    -p airflow \
+    -e dpd.kerja@gmail.com
 
 airflow scheduler &
 airflow webserver &
