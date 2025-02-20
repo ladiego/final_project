@@ -60,13 +60,17 @@ Sebelum menjalankan proyek, pastikan telah menginstal:
 * **Google Cloud SDK** (untuk autentikasi BigQuery)
 
 4.2. Clone Repository & Instalasi Dependensi  
-`git clone https://github.com/ladiego/final_project.git`  
-`Cd final-project`
+   `git clone https://github.com/ladiego/final_project.git`  
+   `Cd final-project`
 
 4.3. Instalasi Dependensi Python  
 `pip install -r requirements.txt`
 
-4.4. Konfigurasi Kredensial
+4.4. Pastikan Docker dan Docker Compose terinstal:
+	`docker --version`
+	`docker-compose --version`
+
+4.5. Konfigurasi Kredensial
 
 1. **PostgreSQL:** Sesuaikan konfigurasi database dalam `docker-compose.yml`.  
 2. **BigQuery:** Simpan file kredensial Google Cloud dalam direktori proyek dan tambahkan variabel lingkungan:  
@@ -99,11 +103,13 @@ Cek apakah layanan berjalan dengan:
 
 5.2. Mengakses Apache Airflow
 
-Buka browser dan masuk ke:
+1. Buka browser dan masuk ke:
 
-`http://localhost:8080`
+	`http://localhost:8080`
 
-Gunakan kredensial default Airflow (`airflow.cfg`) untuk login.
+2. Gunakan kredensial default Airflow (`airflow.cfg`) untuk login.
+  * username : `airflow`
+  * password : `airflow`
 
 ---
 
@@ -161,7 +167,12 @@ Setiap tugas dalam DAG akan mengirimkan notifikasi ke Discord:
 * File **`dbt_project.yml`** untuk mengatur proyek DBT.
 
 7.2. Menjalankan DBT  
-`dbt run`
+ * Masuk ke folder DBT:
+	`cd dbt`
+ * Verifikasi koneksi ke BigQuery:
+	`dbt debug`
+ * Jalankan transformasi data dengan DBT:
+	`dbt run`
 
 7.3. Model Transformasi
 
