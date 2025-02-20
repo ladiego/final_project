@@ -59,7 +59,7 @@ Sebelum menjalankan proyek, pastikan telah menginstal:
 * **Python 3.8+**  
 * **Google Cloud SDK** (untuk autentikasi BigQuery)
 
-4.2. Clone Repository & Instalasi Dependensi  
+4.2. Clone Repository & Instalasi Dependensi
    `git clone https://github.com/ladiego/final_project.git`  
    `Cd final-project`
 
@@ -67,6 +67,7 @@ Sebelum menjalankan proyek, pastikan telah menginstal:
 `pip install -r requirements.txt`
 
 4.4. Pastikan Docker dan Docker Compose terinstal:
+
 	`docker --version`
 	`docker-compose --version`
 
