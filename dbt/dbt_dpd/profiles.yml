@@ -1,0 +1,12 @@
+dbt_dpd:
+  target: dev
+  outputs:
+    dev:
+      type: bigquery
+      method: service-account
+      project: purwadika
+      dataset: diego_library_finpro
+      location: asia-southeast2
+      priority: interactive
+      threads: 4
+      keyfile: "/usr/app/dbt/credentials.json"
