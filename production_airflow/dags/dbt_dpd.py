@@ -14,7 +14,7 @@ default_args = {
 }
 
 with DAG(
-    "dbt_running", 
+    "3_dbt", 
     default_args=default_args, 
     schedule_interval="0 3 * * *", 
     catchup=False,
@@ -25,17 +25,17 @@ with DAG(
 
     dbt_run_prep = BashOperator(
         task_id="dbt_preparation",
-        bash_command="bash -c docker exec -i dbt_dpd dbt run --project-dir /usr/app/dbt --profiles-dir /usr/app/dbt --select preparation"
+        bash_command="docker exec -i dbt_dpd dbt run --project-dir /usr/app/dbt --profiles-dir /usr/app/dbt --select preparation"
     )
 
     dbt_run_dimfact = BashOperator(
         task_id="dbt_dimfact",
-        bash_command="bash -c exec -i dbt_dpd dbt run --project-dir /usr/app/dbt --profiles-dir /usr/app/dbt --select dimfact"
+        bash_command="docker exec -i dbt_dpd dbt run --project-dir /usr/app/dbt --profiles-dir /usr/app/dbt --select dimfact"
     )
 
     dbt_run_marts= BashOperator(
         task_id="dbt_mart",
-        bash_command="bash -c exec -i dbt_dpd dbt run --project-dir /usr/app/dbt --profiles-dir /usr/app/dbt --select datamart"
+        bash_command="docker exec -i dbt_dpd dbt run --project-dir /usr/app/dbt --profiles-dir /usr/app/dbt --select datamart"
     )
 
     dbt_run_prep >> dbt_run_dimfact >> dbt_run_marts
