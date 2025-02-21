@@ -1,7 +1,8 @@
 FROM apache/airflow:2.6.0-python3.9
+
 USER root
 
-# creating working folder for pipeline
+# Creating working folders for pipeline
 RUN mkdir -p usage_report/output
 RUN mkdir -p /opt/airflow/dags
 RUN mkdir -p /opt/airflow/scripts
@@ -9,23 +10,49 @@ RUN mkdir -p /opt/airflow/logs
 RUN mkdir -p /opt/airflow/dbt_venv
 RUN mkdir -p data_quality/output
 
-# gave permission to folder
+# Give permission to folders
 RUN chmod -R 777 /opt/airflow/logs
 RUN chmod -R 777 data_quality/output
 
+# Install necessary packages
 RUN apt-get update \
   && apt-get install -y --no-install-recommends \
   vim \
+  wget \
+  unzip \
+  libnss3 \
+  libgconf-2-4 \
+  libxss1 \
+  libappindicator3-1 \
+  libasound2 \
+  fonts-liberation \
+  libatk-bridge2.0-0 \
+  libgtk-3-0 \
+  xdg-utils \
+  gnupg2 \
+  && curl -sSL https://dl.google.com/linux/linux_signing_key.pub | apt-key add - \
+  && echo "deb [arch=amd64] http://dl.google.com/linux/chrome/deb/ stable main" > /etc/apt/sources.list.d/google-chrome.list \
+  && apt-get update \
+  && apt-get install -y google-chrome-stable \
   && apt-get autoremove -yqq --purge \
   && apt-get clean \
   && rm -rf /var/lib/apt/lists/*
 
-
+# Switch to airflow user to install Python packages
 USER airflow
 
+# Install Python packages
+RUN pip install --no-cache-dir \
+    webdriver-manager \
+    selenium \
+    beautifulsoup4 \
+    pandas \
+    google-cloud-bigquery
+
+# Set AIRFLOW_HOME
 ARG AIRFLOW_HOME=/opt/airflow
 
-# installing python library from pypi
+# Installing additional Python libraries from PyPI
 RUN pip install --trusted-host pypi.org --trusted-host files.pythonhosted.org \
   apache-airflow-providers-google==8.4.0 \
   jsonschema==4.17.0 \
@@ -46,19 +73,16 @@ RUN pip install --trusted-host pypi.org --trusted-host files.pythonhosted.org \
   pympler==1.0.1 \
   astronomer-cosmos==0.7.5 \
   authlib
-#  \
-# acryl-datahub-airflow-plugin
 
 # Copy source code
 COPY ./dags /opt/airflow/dags
 COPY ./scripts /opt/airflow/scripts
 
-# expose port
+# Expose ports
 EXPOSE 8080 5555 8793
 
 # Copy requirements.txt
 COPY requirements.txt /requirements.txt
 
-# Install Python dependencies
+# Install Python dependencies from requirements.txt
 RUN pip install --no-cache-dir -r /requirements.txt
-
