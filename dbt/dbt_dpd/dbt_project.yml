@@ -1,0 +1,37 @@
+name: 'dbt_dpd'
+version: '1.0.0'
+config-version: 2
+
+profile: 'dbt_dpd'
+
+model-paths: ["models"]
+target-path: "target"
+clean-targets:
+  - "target"
+  - "dbt_packages"
+
+models:
+  dbt_dpd:
+    preparation:
+      +materialized: view
+      +schema: diego_finpro_preparation
+      +persists_docs:
+        relation: true
+        columns: true
+      tag: preparation
+
+    dimfact:
+      +materialized: view
+      +schema: diego_finpro_dimfact
+      +persists_docs:
+        relation: true
+        columns: true
+      tag: dimfact
+      
+    datamart:
+      +materialized: view
+      +schema: diego_finpro_marts
+      +persists_docs:
+        relation: true
+        columns: true
+      tag: mart
