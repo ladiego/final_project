@@ -1,5 +1,6 @@
 Faker
 psycopg2-binary
-
+selenium
+webdriver-manager
 
 
