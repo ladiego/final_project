@@ -1,8 +1,11 @@
 import requests
 import os
 import logging
+from datetime import datetime
+from zoneinfo import ZoneInfo
 
 DISCORD_WEBHOOK_URL = os.getenv("DISCORD_WEBHOOK_URL")
+timestamp = datetime.now(ZoneInfo('Asia/Jakarta')).strftime('%Y-%m-%d %H:%M:%S')
 
 def send_discord_notification(message):
     """Send a notification to Discord."""
@@ -20,17 +23,17 @@ def send_discord_notification(message):
 def notify_on_success(context):
     """Send a success notification to Discord."""
     logging.info("notify_on_success called")
-    message = f"DAG {context['dag'].dag_id}, the task {context['task'].task_id} has succeeded"
+    message = f"DAG : {context['dag'].dag_id} \nTask : {context['task'].task_id} \nStatus : Succeess \nTime : {timestamp}"
     send_discord_notification(message)
 
 def notify_on_error(context):
     """Send a error notification to Discord."""
     logging.info("notify_on_error called")
-    message = f"DAG {context['dag'].dag_id}, the task {context['task'].task_id} has error"
+    message = f"DAG {context['dag'].dag_id} \nTask : {context['task'].task_id} \nStatus : error \nTime : {timestamp}" 
     send_discord_notification(message)
 
 def notify_on_retry(context):
     """Send a retry notification to Discord."""
     logging.info("notify_on_retry called")
-    message = f"DAG {context['dag'].dag_id}, the task {context['task'].task_id} is retrying"
+    message = f"DAG {context['dag'].dag_id} \nTask : {context['task'].task_id} \nStatus : retrying \nTime : {timestamp}"
     send_discord_notification(message)
