@@ -1,7 +1,7 @@
 from datetime import datetime, timedelta
 from airflow import DAG
 from airflow.operators.python import PythonOperator
-from helper.helper_postgres2 import generate_data, insert_data
+from helper.helper_postgres import generate_data, insert_data
 from helper.notify import notify_on_success, notify_on_error, notify_on_retry
 
 def generate_data_task(**kwargs):
