@@ -1,7 +1,7 @@
 from datetime import datetime, timedelta
 from airflow import DAG
 from airflow.operators.python import PythonOperator
-from helper.helper_postgres import generate_data, insert_data
+from helper.helper_postgres2 import generate_data, insert_data
 from helper.notify import notify_on_success, notify_on_error, notify_on_retry
 
 def generate_data_task(**kwargs):
@@ -29,7 +29,7 @@ default_args = {
 }
 
 with DAG(
-    dag_id='ingest_data_db',
+    dag_id='1_ingest_data_db',
     default_args=default_args,
     description='Insert data to PostgreSQL',
     schedule_interval='@hourly',  
