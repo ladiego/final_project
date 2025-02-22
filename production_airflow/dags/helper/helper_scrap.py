@@ -144,7 +144,7 @@ def load_to_bq():
     logging.info("Mulai upload data ke BigQuery...")
     
     # Pastikan kredensial Google Cloud tersedia
-    os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = "/Users/Dewangga/Documents/purwa/final_project/caps3/production_airflow/keys/gcp_keys.json"
+    os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = "/opt/airflow/keys/gcp_keys.json"
     
     for attempt in range (3):
         try:
