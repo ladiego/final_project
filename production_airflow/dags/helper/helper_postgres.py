@@ -132,10 +132,10 @@ def insert_data(users, books):
         print(f"Users: {users}")
         print(f"Books: {books}")
         # Insert users
-        cursor.executemany("INSERT INTO finpro.users (name, email, address, gender, created_at) VALUES (%s, %s, %s, %s, %s)", users)
+        cursor.executemany("INSERT INTO finpro.users (name, email, address, gender, created_at) VALUES (%s, %s, %s, %s, %s) ON CONFLICT DO NOTHING", users)
 
         # Insert books
-        cursor.executemany("INSERT INTO finpro.books (title, author, book_type, genre, publisher, release_year, stock, created_at) VALUES (%s, %s, %s, %s, %s, %s, %s, %s)", books)
+        cursor.executemany("INSERT INTO finpro.books (title, author, book_type, genre, publisher, release_year, stock, created_at) VALUES (%s, %s, %s, %s, %s, %s, %s, %s) ON CONFLICT DO NOTHING", books)
 
         # Insert rents
         cursor.execute("SELECT user_id FROM finpro.users")
