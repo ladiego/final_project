@@ -17,8 +17,12 @@ from datetime import datetime
 # Konfigurasi logging
 logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
 
+BIGQUERY_KEY_PATH = os.getenv("BIGQUERY_KEY_PATH", "/opt/airflow/keys/gcp_keys.json")
+BIGQUERY_PROJECT = "purwadika"
+BIGQUERY_DATASET = "diego_library_finpro"
+
 # Path absolut untuk menyimpan CSV
-CSV_PATH = "/tmp/scraped_data.csv"
+CSV_PATH = "/opt/airflow/shared/scraped_data.csv"
 
 # Fungsi untuk membuat tabel di BigQuery jika belum ada
 def create_table_if_not_exists(client, dataset_id, table_id):
@@ -42,7 +46,7 @@ def create_table_if_not_exists(client, dataset_id, table_id):
         client.create_table(table)
         logging.info(f"Tabel {table.table_id} berhasil dibuat di BigQuery.")
     except Exception as e:
-        logging.info(f"Tabel {table_id} is exist: {e}")
+        logging.info(f"Tabel {table_id} sudah ada: {e}")
 
 # Fungsi untuk konversi angka ke integer
 def convert_value(value):
@@ -77,65 +81,61 @@ def create_webdriver():
 def save_to_csv(retries=3):
     for attempt in range(retries):
         try:
-            logging.info(f"Scraping attempt {attempt+1}...")
+            logging.info(f"Scraping attempt {attempt + 1}...")
 
-            browser = create_webdriver()
-            url = 'http://www.adapundi.com/'
-            browser.get(url)
+            with create_webdriver() as browser:
+                url = 'http://www.adapundi.com/'
+                browser.get(url)
 
-            # Tunggu elemen agar benar-benar muncul
-            WebDriverWait(browser, 20).until(
-                EC.presence_of_element_located((By.XPATH, "//div[contains(@class, 'col-md-3')]"))
-            )
+                # Tunggu elemen agar benar-benar muncul
+                WebDriverWait(browser, 20).until(
+                    EC.presence_of_element_located((By.XPATH, "//div[contains(@class, 'col-md-3')]"))
+                )
 
-            # Ambil ulang HTML setelah JavaScript selesai dieksekusi
-            html = browser.execute_script("return document.body.innerHTML;")
-            soup = BeautifulSoup(html, "html.parser")
+                # Ambil ulang HTML setelah JavaScript selesai dieksekusi
+                html = browser.execute_script("return document.body.innerHTML;")
+                soup = BeautifulSoup(html, "html.parser")
 
-            # Ambil data
-            parent = soup.find_all("div", class_="col-md-3 col-12")
+                # Ambil data
+                parent = soup.find_all("div", class_="col-md-3 col-12")
 
-            # Dictionary untuk menyimpan data dalam format BigQuery
-            data_dict = {
-                "Jumlah Akumulasi Peminjam - orang": None,
-                "Jumlah Peminjam Aktif-orang": None,
-                "Jumlah Peminjam Perorangan - Tahun Berjalan": None,
-                "Total Pinjaman Yang Sudah Disalurkan": None,
-                "Akumulasi Pinjaman Tahun ini": None,
-                "Akumulasi Pinjaman Posisi Akhir Bulan": None,
-                "Total Outstanding Pinjaman": None,
-                "Jumlah Akumulasi Pemberi Dana": None,
-                "Jumlah Akumulasi Pemberi Dana Tahun Berjalan": None,
-                "Jumlah Akumulasi Pemberi Dana Posisi Akhir Bulan": None,
-                "created_at": datetime.now()
-            }
+                # Dictionary untuk menyimpan data dalam format BigQuery
+                data_dict = {
+                    "Jumlah Akumulasi Peminjam - orang": None,
+                    "Jumlah Peminjam Aktif-orang": None,
+                    "Jumlah Peminjam Perorangan - Tahun Berjalan": None,
+                    "Total Pinjaman Yang Sudah Disalurkan": None,
+                    "Akumulasi Pinjaman Tahun ini": None,
+                    "Akumulasi Pinjaman Posisi Akhir Bulan": None,
+                    "Total Outstanding Pinjaman": None,
+                    "Jumlah Akumulasi Pemberi Dana": None,
+                    "Jumlah Akumulasi Pemberi Dana Tahun Berjalan": None,
+                    "Jumlah Akumulasi Pemberi Dana Posisi Akhir Bulan": None,
+                    "created_at": datetime.now()
+                }
 
-            for div in parent:
-                title_element = div.find("p")
-                value_element = div.find("h5")
+                for div in parent:
+                    title_element = div.find("p")
+                    value_element = div.find("h5")
 
-                if title_element and value_element:
-                    title = title_element.text.strip()
-                    value = value_element.text.strip()
-                    converted_value = convert_value(value)
-                    if title in data_dict:
-                        data_dict[title] = converted_value
+                    if title_element and value_element:
+                        title = title_element.text.strip()
+                        value = value_element.text.strip()
+                        converted_value = convert_value(value)
+                        if title in data_dict:
+                            data_dict[title] = converted_value
 
-            # Pastikan data valid sebelum menyimpan ke CSV
-            if all(value is not None for value in data_dict.values()):
-                df = pd.DataFrame([data_dict])
-                df.to_csv(CSV_PATH, index=False)
-                logging.info(f"Data berhasil disimpan ke {CSV_PATH}")
-                return
-            logging.warning("Data tidak valid, mencoba ulang")
+                # Pastikan data valid sebelum menyimpan ke CSV
+                if all(value is not None for value in data_dict.values()):
+                    df = pd.DataFrame([data_dict])
+                    df.to_csv(CSV_PATH, index=False)
+                    logging.info(f"Data berhasil disimpan ke {CSV_PATH}")
+                    return
+                logging.warning("Data tidak valid, mencoba ulang")
 
         except Exception as e:
             logging.error(f"Error saat scraping: {e}")
             time.sleep(3)  # Tunggu sebelum mencoba ulang
-
-        finally:
-            if 'browser' in locals():
-                browser.quit()
 
     logging.error("Scraping gagal setelah beberapa kali percobaan.")
 
@@ -144,13 +144,13 @@ def load_to_bq():
     logging.info("Mulai upload data ke BigQuery...")
     
     # Pastikan kredensial Google Cloud tersedia
-    os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = "/opt/airflow/keys/gcp_keys.json"
+    os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = BIGQUERY_KEY_PATH
     
-    for attempt in range (3):
+    for attempt in range(3):
         try:
             client = bigquery.Client()
-            dataset_id = 'purwadika.diego_library_finpro'
-            table_id = f"{dataset_id}.adapundi"
+            dataset_id = f"{BIGQUERY_PROJECT}.{BIGQUERY_DATASET}"
+            table_id = f"{dataset_id}.adapundi_scrap"
 
             # Periksa apakah file CSV ada sebelum memproses
             if not os.path.exists(CSV_PATH):
@@ -172,15 +172,21 @@ def load_to_bq():
 
             # Upload data ke BigQuery tanpa menggantikan data lama
             to_gbq(df, table_id, if_exists='append', progress_bar=False)
-            logging.info("Data baru berhasil ditambahkan ke BigQuery.")
+            logging.info(f"Data baru berhasil ditambahkan ke BigQuery. Jumlah baris yang diupload: {len(df)}")
 
             # Hapus file CSV setelah berhasil diupload
             os.remove(CSV_PATH)
             logging.info(f"File CSV {CSV_PATH} berhasil dihapus setelah upload.")
             return
 
+        except pd.errors.EmptyDataError:
+            logging.error("File CSV kosong, tidak ada data untuk diupload.")
+            return
         except Exception as e:
             logging.error(f"Error saat upload ke BigQuery: {e}")
+            time.sleep(3)  # Tunggu sebelum mencoba ulang
+
+    logging.error("Upload ke BigQuery gagal setelah beberapa kali percobaan.")
 
 # **Cara Menjalankan Kode Secara Manual**
 if __name__ == "__main__":
