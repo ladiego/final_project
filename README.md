@@ -215,6 +215,9 @@ Proyek ini membangun pipeline data otomatis dengan PostgreSQL, Apache Airflow, B
 * **Transformasi data lebih terstruktur** menggunakan DBT.  
 * **Monitoring lebih mudah** dengan notifikasi Discord.  
 * **Pipeline dapat diperluas** untuk proyek-proyek lainnya.
+---
+
+
 
 **BAGIAN II**
 
