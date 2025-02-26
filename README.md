@@ -32,7 +32,8 @@ Pipeline ini terdiri dari beberapa komponen utama:
 5. **Notifikasi ke Discord** untuk monitoring tugas.
 
 **Diagram Arsitektur:**  
-![A711CAB0-2457-4579-AF63-1F1D2A12C309](https://github.com/user-attachments/assets/41671f61-faf2-4e7f-bf2f-4e24b5284033)
+![E4C52A6C-2AF7-4399-94D1-C44EE6044D2E](https://github.com/user-attachments/assets/6cfecafb-1901-46ca-8bb7-2952da372f8d)
+
 
 ---
 
